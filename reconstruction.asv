@@ -42,8 +42,8 @@ Mxy = Mx + 1i*My;
 showGrid(abs(stackImagePI),'gray');
 
 %% Sense
-imageSense = zeros(nYCal,nXCal);
-for y = 1:nYPi
+imageSense = zeros(nYPi,nXPi);
+for y = 1:nYPi/2
     % loop over the entire left-right extent
     for x = 1:nXCal
         % get seinsitivity matrix
@@ -58,12 +58,8 @@ for y = 1:nYPi
         % compute original image values
         v = U*a;
         % place into image
-        imageSense([y y + nXCal/2],x) =  [v(1),v(2)];
+        imageSense([y y + nYPi/2],x) =  v;
     end
 end
 figure;
 imagesc(rescale(abs(imageSense)));
-hold on;
-plot(100,1,'*','MarkerSize', 10,'LineWidth',1,'color','red');
-plot(100,1+nXCal/2,'*','MarkerSize', 10,'LineWidth',1,'color','red');
-hold off;
