@@ -1,4 +1,4 @@
-function showGrid(gridData)
+function showGrid(gridData,cmap)
 
     nCoils = size(gridData,3);
     figure;
@@ -6,8 +6,8 @@ function showGrid(gridData)
     nCols = ceil(sqrt(nCoils));
     for i = 1:nCoils
         subplot(nRows,nCols,i);
-        imagesc(gridData(:,:,i));
-        colormap jet;
+        imagesc(rescale(gridData(:,:,i)));
+        colormap(cmap);
     end
     
 end
