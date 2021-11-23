@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Parameters FOVx="240" FOVy="60" GradMaxAmpl="40" GradSlewRate="150" Name="Parameters"
+            Nx="256"
+            Ny="64"
+            TE="200"
+            TR="300">
+   <ConcatSequence Name="C1">
+      <ATOMICSEQUENCE Name="A1">
+         <SINCRFPULSE Apodization="0.5" Bandwidth="10" FlipAngle="90" Name="P6" Symmetry="0.5"
+                      Zeros="3"/>
+      </ATOMICSEQUENCE>
+      <ATOMICSEQUENCE Name="A2">
+         <TRAPGRADPULSE Area="-abs(A)/2" Axis="GX" Name="P2" Observe="A=P4.Area"/>
+         <TRAPGRADPULSE Area="A" Axis="GY" Name="P3" Observe="A=Parameters.KMAXy"/>
+      </ATOMICSEQUENCE>
+      <DELAYATOMICSEQUENCE Delay="TE" DelayType="C2C" Name="D1" Observe="TE=Parameters.TE" StartSeq="A1"
+                           StopSeq="EPI_loop"/>
+      <CONCATSEQUENCE Name="EPI_loop" Observe="Nlines=Parameters.Ny" Repetitions="Nlines">
+         <ATOMICSEQUENCE Name="Readout">
+            <TRAPGRADPULSE ADCs="N_ro_pts" Axis="GX" FlatTopArea="2*A*(-1)^C" FlatTopTime="1" Name="P4"
+                           Observe="A=Parameters.KMAXx, C=EPI_loop.Counter, N_ro_pts=Parameters.Nx"/>
+         </ATOMICSEQUENCE>
+         <ATOMICSEQUENCE Name="Blips">
+            <TRAPGRADPULSE Area="-A" Axis="GY" Name="P5" Observe="A=Parameters.DKy"/>
+         </ATOMICSEQUENCE>
+      </CONCATSEQUENCE>
+      <DELAYATOMICSEQUENCE Delay="TR" DelayType="B2E" Name="D2" Observe="TR=Parameters.TR" StartSeq="A1"/>
+   </ConcatSequence>
+</Parameters>
