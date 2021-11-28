@@ -9,22 +9,16 @@ nYCal = 128;
 nCoils = 4;
 
 %% Sensitivity Maps
-load('data/calibration_4_coils.mat');
+Mcal = load('data/calibration_4_coils.mat').M;
 load('data/mask.mat');
 load('data/maskCalibration.mat');
 
-Mx = squeeze(M(:,1,:));
-My = squeeze(M(:,2,:));
-Mxy = Mx + 1i*My;
+MxyCal = getMxy(Mcal);
 
-[stackKspaceCal,stackImageCal] = getMatrices(Mxy,nXCal,nYCal,nCoils);
+stackKspaceCal = getStackedKspace(MxyCal,nXCal,nYCal,nCoils);
+stackImageCal = getStackedImage(stackKspaceCal);
 
-[sensitivityMaps] = computeCoilSensitivities(stackImageCal);
-imageReconstructed = lsReconstruct(stackImageCal,sensitivityMaps);
-
-figure;
-imagesc(rescale(abs(imageReconstructed).*maskCalibration));
-colormap('gray');
+sensitivityMaps = computeCoilSensitivities(stackImageCal);
 
 showGrid(abs(sensitivityMaps).*maskCalibration,'gray');
 showGrid(abs(stackImageCal).*maskCalibration,'gray');
@@ -32,38 +26,22 @@ showGrid(abs(stackImageCal).*maskCalibration,'gray');
 %% PI
 nXPi = 256;
 nYPi = 128;
-load('data/r2_4_coils.mat');
-Mx = squeeze(M(:,1,:));
-My = squeeze(M(:,2,:));
-Mxy = Mx + 1i*My;
+Mpi = load('data/r2_4_coils.mat').M;
 
-[stackKspacePI,stackImagePI] = getMatrices(Mxy,nXPi,nYPi,nCoils);
+MxyPi = getMxy(Mpi);
 
-showGrid(abs(stackImagePI),'gray');
+R = nYCal/nYPi;
+
+stackKspaceUndersampled = getStackedKspace(MxyPi,nXPi,nYPi,nCoils);
+stackKspacePI = zeroFillKspace(stackKspaceUndersampled,R);
+stackImagePI = getStackedImage(stackKspacePI);
+
+% visualization of undersampled image
+stackImageUndersampled = getStackedImage(stackKspaceUndersampled);
+showGrid(abs(stackImageUndersampled),'gray');
 
 %% Sense
-imageSense = zeros(nYCal,nXCal);
-for y = 1:nYPi
-    % loop over the entire left-right extent
-    for x = 1:nXCal
-        % get seinsitivity matrix
-        S = sensitivityMaps([y y + nXCal/2],x,:);
-        S = squeeze(S);
-        S = transpose(S);
-        % compute unfolding matrix U
-        U = pinv(S);
-        % get Image values
-        a = stackImagePI(y,x,:);
-        a = squeeze(a);
-        % compute original image values
-        v = U*a;
-        % place into image
-        imageSense([y y + nXCal/2],x) =  [v(1),v(2)];
-    end
-end
-figure;
-imagesc(rescale(abs(imageSense)));
-hold on;
-plot(100,1,'*','MarkerSize', 10,'LineWidth',1,'color','red');
-plot(100,1+nXCal/2,'*','MarkerSize', 10,'LineWidth',1,'color','red');
-hold off;
+[imageSense,gmap] = reconstructSense(sensitivityMaps,stackImagePI);
+plotImage(rescale(abs(imageSense.*maskCalibration)),'gray');
+plotImage(rescale(abs(gmap)),'gray');
+
