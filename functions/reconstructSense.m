@@ -1,8 +1,10 @@
-function [imageSense,gMap] = reconstructSense(sensitivityMaps,stackImagePI)
+function [imageSense,gMap] = reconstructSense(sensitivityMaps,stackImagePI,Gamma)
     [nYCal,nXCal,nCoils] = size(sensitivityMaps);
     imageSense = zeros(nYCal,nXCal);
     gMap = zeros(nYCal,nXCal);
-    Gamma = eye(nCoils,nCoils);
+    if nargin < 3
+        Gamma = eye(nCoils,nCoils);
+    end
     for y = 1:nXCal/2
         % loop over the entire left-right extent
         for x = 1:nXCal

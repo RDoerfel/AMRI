@@ -5,17 +5,18 @@ addpath('./functions');
 
 %% Global Variables
 nXCal = 256;
-nYCal = 128;
+nYCal = 256;
 nCoils = 4;
 
 %% Sensitivity Maps
 Mcal = load('data/calibration_4_coils.mat').M;
-load('data/mask.mat');
-load('data/maskCalibration.mat');
+mask = load('data/mask.mat').mask;
+maskCalibration = load('data/maskCalibration.mat').maskCalibration;
 
 MxyCal = getMxy(Mcal);
 
 stackKspaceCal = getStackedKspace(MxyCal,nXCal,nYCal,nCoils);
+
 stackImageCal = getStackedImage(stackKspaceCal);
 
 sensitivityMaps = computeCoilSensitivities(stackImageCal);
@@ -32,7 +33,14 @@ MxyPi = getMxy(Mpi);
 
 R = nYCal/nYPi;
 
-stackKspaceUndersampled = getStackedKspace(MxyPi,nXPi,nYPi,nCoils);
+N = nXPi * nYPi;
+
+noise = sqrt(5e-9)*randn(N,nCoils) + 1i*sqrt(5e-9)*randn(N,nCoils);
+
+MxyPiNoise = MxyPi + noise;
+
+stackKspaceUndersampled = getStackedKspace(MxyPiNoise,nXPi,nYPi,nCoils);
+
 stackKspacePI = zeroFillKspace(stackKspaceUndersampled,R);
 stackImagePI = getStackedImage(stackKspacePI);
 
@@ -40,8 +48,11 @@ stackImagePI = getStackedImage(stackKspacePI);
 stackImageUndersampled = getStackedImage(stackKspaceUndersampled);
 showGrid(abs(stackImageUndersampled),'gray');
 
-%% Sense
-[imageSense,gmap] = reconstructSense(sensitivityMaps,stackImagePI);
+% Sense
+Gamma = corrcoef(noise);
+[imageSense,gmap] = reconstructSense(sensitivityMaps,stackImagePI,Gamma);
+
+% visualize result
 plotImage(rescale(abs(imageSense.*maskCalibration)),'gray');
 plotImage(rescale(abs(gmap)),'gray');
 
