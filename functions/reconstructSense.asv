@@ -7,8 +7,9 @@ function [imageSense,gMap] = reconstructSense(sensitivityMaps,stackImagePI,Gamma
     end
     for y = 1:floor(nXCal/R)
         % loop over the entire left-right extent
-        y_idx = y:floor(nXCal/R):nXCal;
+        y_idx = y:nXCal/R:nXCal;
         for x = 1:nXCal
+            y_idx
             % get seinsitivity matrix
             S = sensitivityMaps([y_idx],x,:);
             S = squeeze(S);

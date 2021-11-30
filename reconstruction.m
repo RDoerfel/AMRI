@@ -9,7 +9,7 @@ nYCal = 256;
 nCoils = 4;
 
 %% Sensitivity Maps
-Mcal = load('data/calibration_4_coils.mat').M;
+Mcal = load('data/calibration_8_coils.mat').M;
 mask = load('data/mask.mat').mask;
 maskCalibration = load('data/maskCalibration.mat').maskCalibration;
 
@@ -18,28 +18,21 @@ MxyCal = getMxy(Mcal);
 stackKspaceCal = getStackedKspace(MxyCal,nXCal,nYCal,nCoils);
 
 stackImageCal = getStackedImage(stackKspaceCal);
+showGrid(abs(stackImageCal).*maskCalibration,'gray');
 
 sensitivityMaps = computeCoilSensitivities(stackImageCal);
-
-showGrid(abs(sensitivityMaps).*maskCalibration,'gray');
-showGrid(abs(stackImageCal).*maskCalibration,'gray');
+sensitivityMapsSmothed = smootheSensitityMaps(sensitivityMaps,1);
+showGrid(abs(sensitivityMapsSmothed),'gray');
 
 %% PI
 nXPi = 256;
 nYPi = 128;
-Mpi = load('data/r2_4_coils.mat').M;
+Mpi = load('data/r2_8coils.mat').M;
 
 MxyPi = getMxy(Mpi);
 
 R = nYCal/nYPi;
-
-N = nXPi * nYPi;
-
-noise = sqrt(5e-9)*randn(N,nCoils) + 1i*sqrt(5e-9)*randn(N,nCoils);
-
-MxyPiNoise = MxyPi + noise;
-
-stackKspaceUndersampled = getStackedKspace(MxyPiNoise,nXPi,nYPi,nCoils);
+stackKspaceUndersampled = getStackedKspace(MxyPi,nXPi,nYPi,nCoils);
 
 stackKspacePI = zeroFillKspace(stackKspaceUndersampled,R);
 stackImagePI = getStackedImage(stackKspacePI);
@@ -49,10 +42,10 @@ stackImageUndersampled = getStackedImage(stackKspaceUndersampled);
 showGrid(abs(stackImageUndersampled),'gray');
 
 % Sense
-Gamma = corrcoef(noise);
-[imageSense,gmap] = reconstructSense(sensitivityMaps,stackImagePI,Gamma);
+Gamma = eye(nCoils,nCoils);
+[imageSense,gmap] = reconstructSense(sensitivityMapsSmothed,stackImagePI,Gamma,R);
 
 % visualize result
 plotImage(rescale(abs(imageSense.*maskCalibration)),'gray');
-plotImage(rescale(abs(gmap)),'gray');
-
+plotImage(medfilt2(abs(gmap.*maskCalibration)),'gray');
+colorbar;
