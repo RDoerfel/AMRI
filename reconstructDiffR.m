@@ -38,18 +38,19 @@ R = 2;
 
 MxyR2 = getMxy(MR2);
 kspaceR2 = getStackedKspace(MxyR2,nXPi,nYPi,nCoils);
-% kspaceR2 = zeroFillKspace(kspaceR2,R);
+kspaceR2 = zeroFillKspace(kspaceR2,R);
 
 imgR2 = getStackedImage(kspaceR2);
 
 Gamma = eye(nCoils,nCoils);
 [imgSenseR2,gMapR2] = reconstructSense(sensitivityMaps,imgR2,Gamma,R);
-mean(abs(gMapR2(mask)))
+mean(abs(gMapR2(:)))
 
 % visualize result
 plotImage(rescale(abs(imgSenseR2.*mask)),'gray');
 plotImage(medfilt2(abs(gMapR2)),'hot');
-colorbar;
+h = colorbar;
+ylabel(h, 'g-factor');
 
 % R3
 MR3 = load('data/spinEcho_EPI_8ch_R3_10T2_0CS_0T2star.mat').M;
@@ -60,25 +61,20 @@ R = 3;
 
 MxyR3 = getMxy(MR3);
 kSpaceR3 = getStackedKspace(MxyR3,nXPi,nYPi,nCoils);
-%kSpaceR3 = zeroFillKspace(kSpaceR3,R);
+kSpaceR3 = zeroFillKspace(kSpaceR3,R);
 
 imgR3 = getStackedImage(kSpaceR3);
 
 Gamma = eye(nCoils,nCoils);
 [imgSenseR3,gMapR3] = reconstructSense(sensitivityMaps,imgR3,Gamma,R);
 
-imgSenseR3 = imgSenseR3(~all(imgSenseR3 == 0, 2),:);
-gMapR3 = gMapR3(~all(gMapR3 == 0, 2),:);
-new_mask = mask(~all(imgSenseR3 == 0, 2),:);
-
-
-mean(abs(gMapR3(new_mask)))
+mean(abs(gMapR3(:)))
 
 % visualize result
-plotImage(rescale(abs(imgSenseR3.*new_mask)),'gray');
+plotImage(rescale(abs(imgSenseR3.*mask)),'gray');
 plotImage(medfilt2(abs(gMapR3)),'hot');
-colorbar;
-
+h = colorbar;
+ylabel(h, 'g-factor')
 % R4
 MR4 = load('data/spinEcho_EPI_8ch_R4_10T2_0CS_0T2star.mat').M;
 I =  load('data/spinEcho_EPI_8ch_R4_10T2_0CS_0T2star.mat').I;
@@ -88,15 +84,16 @@ R = 4;
 
 MxyR4 = getMxy(MR4);
 kSpaceR4 = getStackedKspace(MxyR4,nXPi,nYPi,nCoils);
-%kSpaceR4 = zeroFillKspace(kSpaceR4,R);
+kSpaceR4 = zeroFillKspace(kSpaceR4,R);
 
 imgR4 = getStackedImage(kSpaceR4);
 
 Gamma = eye(nCoils,nCoils);
 [imgSenseR4,gMapR4] = reconstructSense(sensitivityMaps,imgR4,Gamma,R);
-mean(abs(gMapR4(mask)))
+mean(abs(gMapR4(:)))
 
 % visualize result
 plotImage(rescale(abs(imgSenseR4.*mask)),'gray');
 plotImage(medfilt2(abs(gMapR4)),'hot');
-colorbar;
+h = colorbar;
+ylabel(h, 'g-factor')
